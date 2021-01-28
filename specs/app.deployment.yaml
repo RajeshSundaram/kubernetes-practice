@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: express
+  labels:
+    name: machine-ip-finder
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: host-finder
+  template:
+    metadata:
+      labels:
+        name: host-finder
+    spec:
+      containers:
+        - image: machine-ip-finder:latest
+          name: host-finder
+          imagePullPolicy: Never
+          resources:
+            limits:
+              cpu: 1
+              memory: 256Mi
+            requests:
+              cpu: 0.5
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: app-svc
+  name: machine-ip-finder-service
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+    - nodePort: 31584
+      port: 8081
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    name: host-finder
+  sessionAffinity: None
+  type: LoadBalancer
